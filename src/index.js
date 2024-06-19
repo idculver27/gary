@@ -1,5 +1,5 @@
 const fs = require("fs");
-const { Client, GatewayIntentBits, ReactionEmoji } = require("discord.js");
+const { Client, Events, GatewayIntentBits } = require("discord.js");
 const { token } = require("../secret.json");
 
 const happy = "🎉";
@@ -23,20 +23,19 @@ client.on("ready", c => {
 // login
 client.login(token);
 
-// slash commands
-/*client.on(Events.InteractionCreate, interaction => {
-    if (!interaction.isChatInputCommand()) return;
-
-    if (interaction.commandName === "wordle") wordleLeaderboard(interaction);
-    else if (interaction.commandName === "connections") connectionsLeaderboard(interaction);
-});*/
-
 // listen for game results
 client.on("messageCreate", msg => {
     //console.log(msg);
-    if(msg.author.bot) return;
-    if(msg.content.startsWith("Wordle ")) saveWordleResults(msg);
-    else if(msg.content.startsWith("Connections \nPuzzle #")) saveConnectionsResults(msg);
+    if (msg.author.bot) return;
+    if (msg.content.startsWith("Wordle ")) saveWordleResults(msg);
+    else if (msg.content.startsWith("Connections \nPuzzle #")) saveConnectionsResults(msg);
+});
+
+// commands
+client.on(Events.InteractionCreate, interaction => {
+    if (!interaction.isChatInputCommand()) return;
+    if (interaction.commandName === "wordle") leaderboardWordle(interaction);
+    else if (interaction.commandName === "connections") leaderboardConnections(interaction);
 });
 
 function saveWordleResults(msg) {
@@ -49,15 +48,15 @@ function saveWordleResults(msg) {
         let puzzleNum = msg.content.split(" ")[1].replace(",", "");
         let score = msg.content.split(" ")[2][0];
 
-        if(!(userId in results)) results[userId] = {};
+        if (!(userId in results)) results[userId] = {};
         results[userId].nickname = nickname;
-        if(!("scores" in results[userId])) results[userId].scores = {};
+        if (!("scores" in results[userId])) results[userId].scores = {};
         results[userId].scores[puzzleNum] = score;
 
         fs.writeFileSync(path, JSON.stringify(results, null, "\t"));
 
-        if(parseInt(score)) msg.react(happy);
-        else if(score == "X") msg.react(sad);
+        if (parseInt(score)) msg.react(happy);
+        else if (score === "X") msg.react(sad);
     } catch (error) {
         console.error(error);
     }
@@ -74,25 +73,33 @@ function saveConnectionsResults(msg) {
         
         let mistakes = 0;
         let lines = msg.content.split("\n");
-        for(let i = 2; i < lines.length; i++) {
+        for (let i = 2; i < lines.length; i++) {
             // if a line contains more than one color of square, it is a mistake
             let a = lines[i].includes("🟨");
             let b = lines[i].includes("🟩");
             let c = lines[i].includes("🟦");
             let d = lines[i].includes("🟪");
-            if((a ? 1 : 0) + (b ? 1 : 0) + (c ? 1 : 0) + (d ? 1 : 0) > 1) mistakes++;
+            if ((a ? 1 : 0) + (b ? 1 : 0) + (c ? 1 : 0) + (d ? 1 : 0) > 1) mistakes++;
         }
         
-        if(!(userId in results)) results[userId] = {};
+        if (!(userId in results)) results[userId] = {};
         results[userId].nickname = nickname;
-        if(!("mistakes" in results[userId])) results[userId].mistakes = {};
+        if (!("mistakes" in results[userId])) results[userId].mistakes = {};
         results[userId].mistakes[puzzleNum] = mistakes;
 
         fs.writeFileSync(path, JSON.stringify(results, null, "\t"));
 
-        if(mistakes < 4) msg.react(happy);
-        else if(mistakes == 4) msg.react(sad);
+        if (mistakes < 4) msg.react(happy);
+        else if (mistakes === 4) msg.react(sad);
     } catch (error) {
         console.error(error);
     }
+}
+
+function leaderboardWordle(interaction) {
+    interaction.reply("I haven't implemented the Wordle leaderboard yet");
+}
+
+function leaderboardConnections(interaction) {
+    interaction.reply("I haven't implemented the Connections leaderboard yet");
 }
