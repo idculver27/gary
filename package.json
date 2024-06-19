@@ -18,6 +18,7 @@
   "homepage": "https://github.com/idculver27/gary#readme",
   "dependencies": {
     "discord.js": "^14.15.3",
-    "fs": "^0.0.1-security"
+    "fs": "^0.0.1-security",
+    "pm2": "^5.4.1"
   }
 }
