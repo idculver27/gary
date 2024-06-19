@@ -57,6 +57,7 @@ function saveWordleResults(msg) {
 
         if (parseInt(score)) msg.react(happy);
         else if (score === "X") msg.react(sad);
+        console.log(`Wordle result: ${nickname} ${puzzleNum} ${score}`);
     } catch (error) {
         console.error(error);
     }
@@ -91,6 +92,7 @@ function saveConnectionsResults(msg) {
 
         if (score < 4) msg.react(happy);
         else if (score === 4) msg.react(sad);
+        console.log(`Connections result: ${nickname} ${puzzleNum} ${score}`);
     } catch (error) {
         console.error(error);
     }
@@ -127,6 +129,7 @@ function wordleLeaderboard(interaction) {
         table += "#" + (i + 1).toString().padEnd(4) + entries[i].nickname.padEnd(longest + 2) + entries[i].avgScore.toFixed(1) + "\n";
     }
     table += "```";
+    console.log(table);
     interaction.reply(table);
 }
 
@@ -149,16 +152,17 @@ function connectionsLeaderboard(interaction) {
     }
     entries.sort((a, b) => a.avgScore - b.avgScore);
  
-     // find longest name
-     let longest = 0;
-     for (entry of entries) {
-         if (entry.nickname.length > longest) longest = entry.nickname.length;
-     }
-     // print leaderboard
-     let table = "Connections Leaderboard (by average number of mistakes)\n```\n";
-     for (let i = 0; i < entries.length; i++) {
-         table += "#" + (i + 1).toString().padEnd(4) + entries[i].nickname.padEnd(longest + 2) + entries[i].avgScore.toFixed(1) + "\n";
-     }
-     table += "```";
-     interaction.reply(table);
+    // find longest name
+    let longest = 0;
+    for (entry of entries) {
+        if (entry.nickname.length > longest) longest = entry.nickname.length;
+    }
+    // print leaderboard
+    let table = "Connections Leaderboard (by average number of mistakes)\n```\n";
+    for (let i = 0; i < entries.length; i++) {
+        table += "#" + (i + 1).toString().padEnd(4) + entries[i].nickname.padEnd(longest + 2) + entries[i].avgScore.toFixed(1) + "\n";
+    }
+    table += "```";
+    console.log(table);
+    interaction.reply(table);
 }
