@@ -126,7 +126,7 @@ function wordleLeaderboard(interaction) {
     // print leaderboard
     let table = "Wordle Leaderboard (by average number of guesses)\n```\n";
     for (let i = 0; i < entries.length; i++) {
-        table += "#" + (i + 1).toString().padEnd(4) + entries[i].nickname.padEnd(longest + 2) + entries[i].avgScore.toFixed(1) + "\n";
+        table += "#" + (i + 1).toString().padEnd(4) + entries[i].nickname.padEnd(longest + 2) + entries[i].avgScore.toFixed(2) + "\n";
     }
     table += "```";
     console.log(table);
@@ -160,7 +160,7 @@ function connectionsLeaderboard(interaction) {
     // print leaderboard
     let table = "Connections Leaderboard (by average number of mistakes)\n```\n";
     for (let i = 0; i < entries.length; i++) {
-        table += "#" + (i + 1).toString().padEnd(4) + entries[i].nickname.padEnd(longest + 2) + entries[i].avgScore.toFixed(1) + "\n";
+        table += "#" + (i + 1).toString().padEnd(4) + entries[i].nickname.padEnd(longest + 2) + entries[i].avgScore.toFixed(2) + "\n";
     }
     table += "```";
     console.log(table);
