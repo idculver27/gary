@@ -29,6 +29,7 @@ client.on("messageCreate", msg => {
     if (msg.author.bot) return;
     if (msg.content.startsWith("Wordle ")) saveWordleResults(msg);
     else if (msg.content.startsWith("Connections \nPuzzle #")) saveConnectionsResults(msg);
+    else if (msg.content.startsWith("Strands #")) saveStrandsResults(msg);
 });
 
 // commands
@@ -36,11 +37,12 @@ client.on(Events.InteractionCreate, interaction => {
     if (!interaction.isChatInputCommand()) return;
     if (interaction.commandName === "wordle") wordleLeaderboard(interaction);
     else if (interaction.commandName === "connections") connectionsLeaderboard(interaction);
+    else if (interaction.commandName === "strands") strandsLeaderboard(interaction);
 });
 
 function saveWordleResults(msg) {
     try {
-        const path = "results/wordle.json"
+        const path = "results/wordle.json";
         let results = JSON.parse(fs.readFileSync(path));
 
         let userId = msg.author.id;
@@ -65,7 +67,7 @@ function saveWordleResults(msg) {
 
 function saveConnectionsResults(msg) {
     try {
-        const path = "results/connections.json"
+        const path = "results/connections.json";
         let results = JSON.parse(fs.readFileSync(path));
 
         let userId = msg.author.id;
@@ -98,6 +100,38 @@ function saveConnectionsResults(msg) {
     }
 }
 
+function saveStrandsResults(msg) {
+    try {
+        const path = "results/strands.json";
+        let results = JSON.parse(fs.readFileSync(path));
+
+        let userId = msg.author.id;
+        let nickname = msg.member.displayName;
+        let puzzleNum = msg.content.split("\n")[0].replace("Strands #", "");
+        let score = (msg.content.length - msg.content.replaceAll("💡", "").length) / 2; // .length counts the emojis as 2 each
+
+        let justBalls = "";
+        for (let char of msg.content) {
+            if (char === "🔵" || char === "🟡") justBalls += char;
+        }
+        let percent = Math.round(justBalls.indexOf("🟡") / justBalls.length * 1000) / 10;
+        
+        if (!(userId in results)) results[userId] = {};
+        results[userId].nickname = nickname;
+        if (!("scores" in results[userId])) results[userId].scores = {};
+        results[userId].scores[puzzleNum] = score;
+        if (!("percents" in results[userId])) results[userId].percents = {};
+        results[userId].percents[puzzleNum] = percent;
+
+        fs.writeFileSync(path, JSON.stringify(results, null, "\t"));
+
+        msg.react(happy); // strands has no fail state
+        console.log(`Strands result: ${nickname} ${puzzleNum} ${score} ${percent}`);
+    } catch (error) {
+        console.error(error);
+    }
+}
+
 function wordleLeaderboard(interaction) {
     // tabulate results
     const results = JSON.parse(fs.readFileSync("results/wordle.json"));
@@ -120,7 +154,7 @@ function wordleLeaderboard(interaction) {
     entries.sort((a, b) => (a.avgScore - b.avgScore) || (a.gamesPlayed - b.gamesPlayed));
     
     // create leaderboard table
-    let table = [["","","Avg Guesses","Games Played"]];
+    let table = [["", "", "Avg Guesses", "Games Played"]];
     for (let i = 0; i < entries.length; i++) {
         let row = [];
         row.push("#" + (i + 1).toString());
@@ -155,7 +189,7 @@ function connectionsLeaderboard(interaction) {
     entries.sort((a, b) => (a.avgScore - b.avgScore || b.gamesPlayed - a.gamesPlayed));
     
     // create leaderboard table
-    let table = [["","","Avg Mistakes","Games Played"]];
+    let table = [["", "", "Avg Mistakes", "Games Played"]];
     for (let i = 0; i < entries.length; i++) {
         let row = [];
         row.push("#" + (i + 1).toString());
@@ -167,6 +201,47 @@ function connectionsLeaderboard(interaction) {
 
     // print leaderboard
     interaction.reply(getLeaderboard(table, "Connections Leaderboard"));
+}
+
+function strandsLeaderboard(interaction) {
+    // tabulate results
+    const results = JSON.parse(fs.readFileSync("results/strands.json"));
+    let entries = []
+    for (user in results) {
+        let scoreSum = 0;
+        let percentSum = 0;
+        let gamesPlayed = 0;
+        for (score in results[user].scores) {
+            scoreSum += results[user].scores[score];
+            gamesPlayed++;
+        }
+        for (percent in results[user].percents) {
+            percentSum += results[user].percents[percent];
+        }
+        let entry = {
+            nickname: results[user].nickname,
+            avgScore: Math.round(scoreSum / gamesPlayed * 100) / 100,
+            avgPercent: Math.round(percentSum / gamesPlayed * 10) / 10,
+            gamesPlayed: gamesPlayed
+        };
+        entries.push(entry);
+    }
+    entries.sort((a, b) => (a.avgScore - b.avgScore || a.avgPercent - b.avgPercent || b.gamesPlayed - a.gamesPlayed));
+    
+    // create leaderboard table
+    let table = [["", "", "Avg Mistakes", "Avg % until Spangram", "Games Played"]];
+    for (let i = 0; i < entries.length; i++) {
+        let row = [];
+        row.push("#" + (i + 1).toString());
+        row.push(entries[i].nickname);
+        row.push(entries[i].avgScore.toFixed(2));
+        row.push(entries[i].avgPercent.toFixed(1));
+        row.push(entries[i].gamesPlayed.toString());
+        table.push(row);
+    }
+
+    // print leaderboard
+    interaction.reply(getLeaderboard(table, "Strands Leaderboard"));
 }
 
 function getLeaderboard(table,title) {

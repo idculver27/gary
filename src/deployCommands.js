@@ -9,6 +9,10 @@ const commands = [
     {
         name: "connections",
         description: "Show the current Connections leaderboard"
+    },
+    {
+        name: "strands",
+        description: "Show the current Strands leaderboard"
     }
 ];
 
