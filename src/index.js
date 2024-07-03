@@ -259,7 +259,7 @@ function getLeaderboard(table,title) {
     let reply = title + "\n```\n";
     for (let i = 0; i < table.length; i++) {
         for (let j = 0; j < table[i].length; j++) {
-            if (isNaN(table[i][j])) reply += table[i][j].padEnd(widths[j] + 2);
+            if (isNaN(table[i][j].replace("%", ""))) reply += table[i][j].padEnd(widths[j] + 2);
             else reply += table[i][j].padStart(widths[j]) + "  ";
         }
         reply += "\n";
