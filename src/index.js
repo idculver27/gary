@@ -154,7 +154,7 @@ function wordleLeaderboard(interaction) {
     entries.sort((a, b) => (a.avgScore - b.avgScore) || (a.gamesPlayed - b.gamesPlayed));
     
     // create leaderboard table
-    let table = [["", "", "Avg Guesses", "Games Played"]];
+    let table = [];
     for (let i = 0; i < entries.length; i++) {
         let row = [];
         row.push("#" + (i + 1).toString());
@@ -165,7 +165,7 @@ function wordleLeaderboard(interaction) {
     }
     
     // print leaderboard
-    interaction.reply(getLeaderboard(table, "Wordle Leaderboard ⬛🟨🟩"));
+    interaction.reply(getLeaderboard(table, "Wordle Leaderboard ⬛🟨🟩\n- Avg guesses\n- Games played"));
 }
 
 function connectionsLeaderboard(interaction) {
@@ -189,7 +189,7 @@ function connectionsLeaderboard(interaction) {
     entries.sort((a, b) => (a.avgScore - b.avgScore || b.gamesPlayed - a.gamesPlayed));
     
     // create leaderboard table
-    let table = [["", "", "Avg Mistakes", "Games Played"]];
+    let table = [];
     for (let i = 0; i < entries.length; i++) {
         let row = [];
         row.push("#" + (i + 1).toString());
@@ -200,7 +200,7 @@ function connectionsLeaderboard(interaction) {
     }
 
     // print leaderboard
-    interaction.reply(getLeaderboard(table, "Connections Leaderboard 🟨🟩🟦🟪"));
+    interaction.reply(getLeaderboard(table, "Connections Leaderboard 🟨🟩🟦🟪\n- Avg mistakes\n- Games played"));
 }
 
 function strandsLeaderboard(interaction) {
@@ -229,19 +229,19 @@ function strandsLeaderboard(interaction) {
     entries.sort((a, b) => (a.avgScore - b.avgScore || a.avgPercent - b.avgPercent || b.gamesPlayed - a.gamesPlayed));
     
     // create leaderboard table
-    let table = [["", "", "Avg Mistakes", "Avg % until Spangram", "Games Played"]];
+    let table = [];
     for (let i = 0; i < entries.length; i++) {
         let row = [];
         row.push("#" + (i + 1).toString());
         row.push(entries[i].nickname);
         row.push(entries[i].avgScore.toFixed(2));
-        row.push(entries[i].avgPercent.toFixed(1));
+        row.push(entries[i].avgPercent.toFixed(1) + "%");
         row.push(entries[i].gamesPlayed.toString());
         table.push(row);
     }
 
     // print leaderboard
-    interaction.reply(getLeaderboard(table, "Strands Leaderboard 💡🔵🟡"));
+    interaction.reply(getLeaderboard(table, "Strands Leaderboard 💡🔵🟡\n- Avg hints\n- Avg % until spangram\n- Games played"));
 }
 
 function getLeaderboard(table,title) {
