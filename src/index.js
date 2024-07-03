@@ -112,25 +112,26 @@ function wordleLeaderboard(interaction) {
         }
         let entry = {
             nickname: results[user].nickname,
-            avgScore: Math.round(scoreSum / gamesPlayed * 100) / 100
+            avgScore: Math.round(scoreSum / gamesPlayed * 100) / 100,
+            gamesPlayed: gamesPlayed
         };
         entries.push(entry);
     }
-    entries.sort((a, b) => a.avgScore - b.avgScore);
-
-    // find longest name
-    let longest = 0;
-    for (entry of entries) {
-        if (entry.nickname.length > longest) longest = entry.nickname.length;
-    }
-    // print leaderboard
-    let table = "Wordle Leaderboard (by average number of guesses)\n```\n";
+    entries.sort((a, b) => (a.avgScore - b.avgScore) || (a.gamesPlayed - b.gamesPlayed));
+    
+    // create leaderboard table
+    let table = [["","","Avg Guesses","Games Played"]];
     for (let i = 0; i < entries.length; i++) {
-        table += "#" + (i + 1).toString().padEnd(4) + entries[i].nickname.padEnd(longest + 2) + entries[i].avgScore.toFixed(2) + "\n";
+        let row = [];
+        row.push("#" + (i + 1).toString());
+        row.push(entries[i].nickname);
+        row.push(entries[i].avgScore.toFixed(2));
+        row.push(entries[i].gamesPlayed.toString());
+        table.push(row);
     }
-    table += "```";
-    console.log(table);
-    interaction.reply(table);
+    
+    // print leaderboard
+    interaction.reply(getLeaderboard(table, "Wordle Leaderboard"));
 }
 
 function connectionsLeaderboard(interaction) {
@@ -146,23 +147,49 @@ function connectionsLeaderboard(interaction) {
         }
         let entry = {
             nickname: results[user].nickname,
-            avgScore: Math.round(scoreSum / gamesPlayed * 100) / 100
+            avgScore: Math.round(scoreSum / gamesPlayed * 100) / 100,
+            gamesPlayed: gamesPlayed
         };
         entries.push(entry);
     }
-    entries.sort((a, b) => a.avgScore - b.avgScore);
- 
-    // find longest name
-    let longest = 0;
-    for (entry of entries) {
-        if (entry.nickname.length > longest) longest = entry.nickname.length;
-    }
-    // print leaderboard
-    let table = "Connections Leaderboard (by average number of mistakes)\n```\n";
+    entries.sort((a, b) => (a.avgScore - b.avgScore || b.gamesPlayed - a.gamesPlayed));
+    
+    // create leaderboard table
+    let table = [["","","Avg Mistakes","Games Played"]];
     for (let i = 0; i < entries.length; i++) {
-        table += "#" + (i + 1).toString().padEnd(4) + entries[i].nickname.padEnd(longest + 2) + entries[i].avgScore.toFixed(2) + "\n";
+        let row = [];
+        row.push("#" + (i + 1).toString());
+        row.push(entries[i].nickname);
+        row.push(entries[i].avgScore.toFixed(2));
+        row.push(entries[i].gamesPlayed.toString());
+        table.push(row);
     }
-    table += "```";
-    console.log(table);
-    interaction.reply(table);
+
+    // print leaderboard
+    interaction.reply(getLeaderboard(table, "Connections Leaderboard"));
+}
+
+function getLeaderboard(table,title) {
+    // find longest value in each column
+    let widths = [];
+    for (let i = 0; i < table[0].length; i ++) {
+        let longest = 0;
+        for (let j = 0; j < table.length; j++) {
+            if (table[j][i].length > longest) longest = table[j][i].length;
+        }
+        widths.push(longest);
+    }
+    
+    // compose reply
+    let reply = title + "\n```\n";
+    for (let i = 0; i < table.length; i++) {
+        for (let j = 0; j < table[i].length; j++) {
+            if (isNaN(table[i][j])) reply += table[i][j].padEnd(widths[j] + 2);
+            else reply += table[i][j].padStart(widths[j]) + "  ";
+        }
+        reply += "\n";
+    }
+    reply += "```";
+    console.log(reply);
+    return reply;
 }
