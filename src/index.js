@@ -165,7 +165,7 @@ function wordleLeaderboard(interaction) {
     }
     
     // print leaderboard
-    interaction.reply(getLeaderboard(table, "Wordle Leaderboard"));
+    interaction.reply(getLeaderboard(table, "Wordle Leaderboard ⬛🟨🟩"));
 }
 
 function connectionsLeaderboard(interaction) {
@@ -200,7 +200,7 @@ function connectionsLeaderboard(interaction) {
     }
 
     // print leaderboard
-    interaction.reply(getLeaderboard(table, "Connections Leaderboard"));
+    interaction.reply(getLeaderboard(table, "Connections Leaderboard 🟨🟩🟦🟪"));
 }
 
 function strandsLeaderboard(interaction) {
@@ -241,7 +241,7 @@ function strandsLeaderboard(interaction) {
     }
 
     // print leaderboard
-    interaction.reply(getLeaderboard(table, "Strands Leaderboard"));
+    interaction.reply(getLeaderboard(table, "Strands Leaderboard 💡🔵🟡"));
 }
 
 function getLeaderboard(table,title) {
