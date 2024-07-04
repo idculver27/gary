@@ -151,7 +151,7 @@ function wordleLeaderboard(interaction) {
         };
         entries.push(entry);
     }
-    entries.sort((a, b) => (a.avgScore - b.avgScore) || (a.gamesPlayed - b.gamesPlayed));
+    entries.sort(compareScoreThenGamesPlayed);
     
     // create leaderboard table
     let table = [];
@@ -186,7 +186,7 @@ function connectionsLeaderboard(interaction) {
         };
         entries.push(entry);
     }
-    entries.sort((a, b) => (a.avgScore - b.avgScore || b.gamesPlayed - a.gamesPlayed));
+    entries.sort(compareScoreThenGamesPlayed);
     
     // create leaderboard table
     let table = [];
@@ -226,7 +226,7 @@ function strandsLeaderboard(interaction) {
         };
         entries.push(entry);
     }
-    entries.sort((a, b) => (a.avgScore - b.avgScore || a.avgPercent - b.avgPercent || b.gamesPlayed - a.gamesPlayed));
+    entries.sort(compareScoreThenPercentThenGamesPlayed);
     
     // create leaderboard table
     let table = [];
@@ -267,4 +267,26 @@ function getLeaderboard(table,title) {
     reply += "```";
     console.log(reply);
     return reply;
+}
+
+// compare function for wordle and connections
+// if you've played less than 10 games, 100 is added to your avg score, since you're "unproven"
+// sort by avg score (asc), then games played (desc)
+function compareScoreThenGamesPlayed(a, b) {
+    let avgScoreA = a.avgScore;
+    let avgScoreB = b.avgScore;
+    if (a.gamesPlayed < 10) avgScoreA += 100;
+    if (b.gamesPlayed < 10) avgScoreB += 100;
+    return (avgScoreA - avgScoreB || a.gamesPlayed - b.gamesPlayed);
+}
+
+// compare function for strands
+// if you've played less than 10 games, 100 is added to your avg score, since you're "unproven"
+// sort by avg score (asc), then avg percent (asc), then games played (desc)
+function compareScoreThenPercentThenGamesPlayed(a, b) {
+    let avgScoreA = a.avgScore;
+    let avgScoreB = b.avgScore;
+    if (a.gamesPlayed < 10) avgScoreA += 100;
+    if (b.gamesPlayed < 10) avgScoreB += 100;
+    return (avgScoreA - avgScoreB || a.avgPercent - b.avgPercent || b.gamesPlayed - a.gamesPlayed);
 }
