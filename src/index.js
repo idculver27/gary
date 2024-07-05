@@ -55,11 +55,12 @@ function saveWordleResults(msg) {
         if (!("scores" in results[userId])) results[userId].scores = {};
         results[userId].scores[puzzleNum] = score;
 
-        fs.writeFileSync(path, JSON.stringify(results, null, "\t"));
-
         if (parseInt(score)) msg.react(happy);
         else if (score === "X") msg.react(sad);
+        else throw new Error(`Invalid score: ${score}`);
+
         console.log(`Wordle result: ${nickname} ${puzzleNum} ${score}`);
+        fs.writeFileSync(path, JSON.stringify(results, null, "\t"));
     } catch (error) {
         console.error(error);
     }
@@ -90,11 +91,12 @@ function saveConnectionsResults(msg) {
         if (!("scores" in results[userId])) results[userId].scores = {};
         results[userId].scores[puzzleNum] = score;
 
-        fs.writeFileSync(path, JSON.stringify(results, null, "\t"));
-
         if (score < 4) msg.react(happy);
         else if (score === 4) msg.react(sad);
+        else throw new Error(`Invalid score: ${score}`);
+
         console.log(`Connections result: ${nickname} ${puzzleNum} ${score}`);
+        fs.writeFileSync(path, JSON.stringify(results, null, "\t"));
     } catch (error) {
         console.error(error);
     }
@@ -123,10 +125,10 @@ function saveStrandsResults(msg) {
         if (!("percents" in results[userId])) results[userId].percents = {};
         results[userId].percents[puzzleNum] = percent;
 
-        fs.writeFileSync(path, JSON.stringify(results, null, "\t"));
-
         msg.react(happy); // strands has no fail state
+        
         console.log(`Strands result: ${nickname} ${puzzleNum} ${score} ${percent}`);
+        fs.writeFileSync(path, JSON.stringify(results, null, "\t"));
     } catch (error) {
         console.error(error);
     }
