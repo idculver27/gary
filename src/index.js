@@ -135,21 +135,34 @@ function saveStrandsResults(msg) {
 }
 
 function wordleLeaderboard(interaction) {
-    // tabulate results
     const results = JSON.parse(fs.readFileSync("results/wordle.json"));
-    let entries = []
-    for (user in results) {
-        let scoreSum = 0;
-        let gamesPlayed = 0;
-        for (score in results[user].scores) {
-            if (results[user].scores[score] === "X") scoreSum += 7; // a loss is counted as 7 guesses
-            else scoreSum += parseInt(results[user].scores[score]);
-            gamesPlayed++;
+        
+    // find latest game
+    let latest = 0;
+    for (let user in results) {
+        for (let game in results[user].scores) {
+            if (parseInt(game) > latest) latest = parseInt(game);
         }
+    }
+
+    // tabulate results
+    let entries = []
+    for (let user in results) {
+        let scoreSum = 0;
+        let gamesPlayedOfLast30 = 0;
+        let gamesPlayedLifetime = 0;
+        for (let game in results[user].scores) {
+            gamesPlayedLifetime++;
+            if (parseInt(game) < latest - 29) continue; // skip older than 30 days
+            if (results[user].scores[game] === "X") scoreSum += 7; // a loss is counted as 7 guesses
+            else scoreSum += parseInt(results[user].scores[game]);
+            gamesPlayedOfLast30++;
+        }
+        if (gamesPlayedOfLast30 === 0) continue;
         let entry = {
             nickname: results[user].nickname,
-            avgScore: Math.round(scoreSum / gamesPlayed * 100) / 100,
-            gamesPlayed: gamesPlayed
+            avgScore: Math.round(scoreSum / gamesPlayedOfLast30 * 100) / 100,
+            gamesPlayed: gamesPlayedLifetime
         };
         entries.push(entry);
     }
@@ -167,24 +180,37 @@ function wordleLeaderboard(interaction) {
     }
     
     // print leaderboard
-    interaction.reply(getLeaderboard(table, "Wordle Leaderboard ⬛🟨🟩\n- Avg guesses\n- Games played"));
+    interaction.reply(getLeaderboard(table, "Wordle Leaderboard ⬛🟨🟩\n- Avg guesses (last 30 days)\n- Games played"));
 }
 
 function connectionsLeaderboard(interaction) {
-    // tabulate results
     const results = JSON.parse(fs.readFileSync("results/connections.json"));
-    let entries = []
-    for (user in results) {
-        let scoreSum = 0;
-        let gamesPlayed = 0;
-        for (score in results[user].scores) {
-            scoreSum += results[user].scores[score];
-            gamesPlayed++;
+    
+    // find latest game
+    let latest = 0;
+    for (let user in results) {
+        for (let game in results[user].scores) {
+            if (parseInt(game) > latest) latest = parseInt(game);
         }
+    }
+    
+    // tabulate results
+    let entries = []
+    for (let user in results) {
+        let scoreSum = 0;
+        let gamesPlayedOfLast30 = 0;
+        let gamesPlayedLifetime = 0;
+        for (let game in results[user].scores) {
+            gamesPlayedLifetime++;
+            if (parseInt(game) < latest - 29) continue; // skip older than 30 days
+            scoreSum += results[user].scores[game];
+            gamesPlayedOfLast30++;
+        }
+        if (gamesPlayedOfLast30 === 0) continue;
         let entry = {
             nickname: results[user].nickname,
-            avgScore: Math.round(scoreSum / gamesPlayed * 100) / 100,
-            gamesPlayed: gamesPlayed
+            avgScore: Math.round(scoreSum / gamesPlayedOfLast30 * 100) / 100,
+            gamesPlayed: gamesPlayedLifetime
         };
         entries.push(entry);
     }
@@ -202,29 +228,43 @@ function connectionsLeaderboard(interaction) {
     }
 
     // print leaderboard
-    interaction.reply(getLeaderboard(table, "Connections Leaderboard 🟨🟩🟦🟪\n- Avg mistakes\n- Games played"));
+    interaction.reply(getLeaderboard(table, "Connections Leaderboard 🟨🟩🟦🟪\n- Avg mistakes (last 30 days)\n- Games played"));
 }
 
 function strandsLeaderboard(interaction) {
-    // tabulate results
     const results = JSON.parse(fs.readFileSync("results/strands.json"));
+    
+    // find latest game
+    let latest = 0;
+    for (let user in results) {
+        for (let game in results[user].scores) {
+            if (parseInt(game) > latest) latest = parseInt(game);
+        }
+    }
+
+    // tabulate results
     let entries = []
-    for (user in results) {
+    for (let user in results) {
         let scoreSum = 0;
         let percentSum = 0;
-        let gamesPlayed = 0;
-        for (score in results[user].scores) {
-            scoreSum += results[user].scores[score];
-            gamesPlayed++;
+        let gamesPlayedOfLast30 = 0;
+        let gamesPlayedLifetime = 0;
+        for (let game in results[user].scores) {
+            gamesPlayedLifetime++;
+            if (parseInt(game) < latest - 29) continue; // skip older than 30 days
+            scoreSum += results[user].scores[game];
+            gamesPlayedOfLast30++;
         }
-        for (percent in results[user].percents) {
-            percentSum += results[user].percents[percent];
+        for (let game in results[user].percents) {
+            if (parseInt(game) < latest - 29) continue; // skip older than 30 days
+            percentSum += results[user].percents[game];
         }
+        if (gamesPlayedOfLast30 === 0) continue;
         let entry = {
             nickname: results[user].nickname,
-            avgScore: Math.round(scoreSum / gamesPlayed * 100) / 100,
-            avgPercent: Math.round(percentSum / gamesPlayed * 10) / 10,
-            gamesPlayed: gamesPlayed
+            avgScore: Math.round(scoreSum / gamesPlayedOfLast30 * 100) / 100,
+            avgPercent: Math.round(percentSum / gamesPlayedOfLast30 * 10) / 10,
+            gamesPlayed: gamesPlayedLifetime
         };
         entries.push(entry);
     }
@@ -243,7 +283,7 @@ function strandsLeaderboard(interaction) {
     }
 
     // print leaderboard
-    interaction.reply(getLeaderboard(table, "Strands Leaderboard 💡🔵🟡\n- Avg hints\n- Avg % until spangram\n- Games played"));
+    interaction.reply(getLeaderboard(table, "Strands Leaderboard 💡🔵🟡\n- Avg hints (last 30 days)\n- Avg % until spangram (last 30 days)\n- Games played"));
 }
 
 function getLeaderboard(table,title) {
