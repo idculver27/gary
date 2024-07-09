@@ -48,16 +48,18 @@ function saveWordleResults(msg) {
         let userId = msg.author.id;
         let nickname = msg.member.displayName;
         let puzzleNum = msg.content.split(" ")[1].replace(",", "");
+        
         let score = msg.content.split(" ")[2][0];
+        if (score === "X") score = 7; // a loss is counted as 7 guesses
+        else score = parseInt(score);
 
         if (!(userId in results)) results[userId] = {};
         results[userId].nickname = nickname;
         if (!("scores" in results[userId])) results[userId].scores = {};
         results[userId].scores[puzzleNum] = score;
 
-        if (parseInt(score)) msg.react(happy);
-        else if (score === "X") msg.react(sad);
-        else throw new Error(`Invalid score: ${score}`);
+        if (score < 7) msg.react(happy);
+        else if (score === 7) msg.react(sad);
 
         console.log(`Wordle result: ${nickname} ${puzzleNum} ${score}`);
         fs.writeFileSync(path, JSON.stringify(results, null, "\t"));
@@ -93,7 +95,6 @@ function saveConnectionsResults(msg) {
 
         if (score < 4) msg.react(happy);
         else if (score === 4) msg.react(sad);
-        else throw new Error(`Invalid score: ${score}`);
 
         console.log(`Connections result: ${nickname} ${puzzleNum} ${score}`);
         fs.writeFileSync(path, JSON.stringify(results, null, "\t"));
@@ -154,8 +155,7 @@ function wordleLeaderboard(interaction) {
         for (let game in results[user].scores) {
             gamesPlayedLifetime++;
             if (parseInt(game) < latest - 29) continue; // skip older than 30 days
-            if (results[user].scores[game] === "X") scoreSum += 7; // a loss is counted as 7 guesses
-            else scoreSum += parseInt(results[user].scores[game]);
+            scoreSum += parseInt(results[user].scores[game]);
             gamesPlayedOfLast30++;
         }
         if (gamesPlayedOfLast30 === 0) continue;
