@@ -4,6 +4,9 @@ const { token } = require("../secret.json");
 
 const happy = "🎉";
 const sad = "😔";
+const wordleLosingScore = 7;
+const connectionsLosingScore = 4;
+const strandsLosingScore = 9;
 
 // create client
 const client = new Client({
@@ -50,7 +53,7 @@ function saveWordleResults(msg) {
         let puzzleNum = msg.content.split(" ")[1].replace(",", "");
         
         let score = msg.content.split(" ")[2][0];
-        if (score === "X") score = 7; // a loss is counted as 7 guesses
+        if (score === "X") score = wordleLosingScore;
         else score = parseInt(score);
 
         if (!(userId in results)) results[userId] = {};
@@ -58,8 +61,8 @@ function saveWordleResults(msg) {
         if (!("scores" in results[userId])) results[userId].scores = {};
         results[userId].scores[puzzleNum] = score;
 
-        if (score < 7) msg.react(happy);
-        else if (score === 7) msg.react(sad);
+        if (score < wordleLosingScore) msg.react(happy);
+        else if (score === wordleLosingScore) msg.react(sad);
 
         console.log(`Wordle result: ${nickname} ${puzzleNum} ${score}`);
         fs.writeFileSync(path, JSON.stringify(results, null, "\t"));
@@ -93,8 +96,8 @@ function saveConnectionsResults(msg) {
         if (!("scores" in results[userId])) results[userId].scores = {};
         results[userId].scores[puzzleNum] = score;
 
-        if (score < 4) msg.react(happy);
-        else if (score === 4) msg.react(sad);
+        if (score < connectionsLosingScore) msg.react(happy);
+        else if (score === connectionsLosingScore) msg.react(sad);
 
         console.log(`Connections result: ${nickname} ${puzzleNum} ${score}`);
         fs.writeFileSync(path, JSON.stringify(results, null, "\t"));
@@ -147,26 +150,28 @@ function wordleLeaderboard(interaction) {
     }
 
     // tabulate results
-    let entries = []
+    let entries = [];
     for (let user in results) {
         let scoreSum = 0;
-        let gamesPlayedOfLast30 = 0;
-        let gamesPlayedLifetime = 0;
-        for (let game in results[user].scores) {
-            gamesPlayedLifetime++;
-            if (parseInt(game) < latest - 29) continue; // skip older than 30 days
-            scoreSum += parseInt(results[user].scores[game]);
-            gamesPlayedOfLast30++;
+        for (let game = latest - 29; game < latest; game++) {
+            if (game in results[user].scores) scoreSum += results[user].scores[game];
+            else scoreSum += wordleLosingScore;
         }
-        if (gamesPlayedOfLast30 === 0) continue;
+        // don't penalize for not playing the latest game
+        let denominator = 29;
+        if (latest in results[user].scores) {
+            scoreSum += results[user].scores[latest];
+            denominator++;
+        }
+
         let entry = {
             nickname: results[user].nickname,
-            avgScore: Math.round(scoreSum / gamesPlayedOfLast30 * 100) / 100,
-            gamesPlayed: gamesPlayedLifetime
+            avgScore: Math.round(scoreSum / denominator * 100) / 100,
+            gamesPlayed: Object.keys(results[user].scores).length
         };
         entries.push(entry);
     }
-    entries.sort(compareScoreThenGamesPlayed);
+    entries.sort((a, b) => (a.avgScore - b.avgScore || b.gamesPlayed - a.gamesPlayed));
     
     // create leaderboard table
     let table = [];
@@ -195,26 +200,28 @@ function connectionsLeaderboard(interaction) {
     }
     
     // tabulate results
-    let entries = []
+    let entries = [];
     for (let user in results) {
         let scoreSum = 0;
-        let gamesPlayedOfLast30 = 0;
-        let gamesPlayedLifetime = 0;
-        for (let game in results[user].scores) {
-            gamesPlayedLifetime++;
-            if (parseInt(game) < latest - 29) continue; // skip older than 30 days
-            scoreSum += results[user].scores[game];
-            gamesPlayedOfLast30++;
+        for (let game = latest - 29; game < latest; game++) {
+            if (game in results[user].scores) scoreSum += results[user].scores[game];
+            else scoreSum += connectionsLosingScore;
         }
-        if (gamesPlayedOfLast30 === 0) continue;
+        // don't penalize for not playing the latest game
+        let denominator = 29;
+        if (latest in results[user].scores) {
+            scoreSum += results[user].scores[latest];
+            denominator++;
+        }
+
         let entry = {
             nickname: results[user].nickname,
-            avgScore: Math.round(scoreSum / gamesPlayedOfLast30 * 100) / 100,
-            gamesPlayed: gamesPlayedLifetime
+            avgScore: Math.round(scoreSum / denominator * 100) / 100,
+            gamesPlayed: Object.keys(results[user].scores).length
         };
         entries.push(entry);
     }
-    entries.sort(compareScoreThenGamesPlayed);
+    entries.sort((a, b) => (a.avgScore - b.avgScore || b.gamesPlayed - a.gamesPlayed));
     
     // create leaderboard table
     let table = [];
@@ -243,32 +250,36 @@ function strandsLeaderboard(interaction) {
     }
 
     // tabulate results
-    let entries = []
+    let entries = [];
     for (let user in results) {
         let scoreSum = 0;
         let percentSum = 0;
-        let gamesPlayedOfLast30 = 0;
-        let gamesPlayedLifetime = 0;
-        for (let game in results[user].scores) {
-            gamesPlayedLifetime++;
-            if (parseInt(game) < latest - 29) continue; // skip older than 30 days
-            scoreSum += results[user].scores[game];
-            gamesPlayedOfLast30++;
+        for (let game = latest - 29; game < latest; game++) {
+            if (game in results[user].scores) {
+                scoreSum += results[user].scores[game];
+                percentSum += results[user].percents[game];
+            } else {
+                scoreSum += strandsLosingScore;
+                percentSum += 100;
+            }
         }
-        for (let game in results[user].percents) {
-            if (parseInt(game) < latest - 29) continue; // skip older than 30 days
-            percentSum += results[user].percents[game];
+        // don't penalize for not playing the latest game
+        let denominator = 29;
+        if (latest in results[user].scores) {
+            scoreSum += results[user].scores[latest];
+            percentSum += results[user].percents[latest];
+            denominator++;
         }
-        if (gamesPlayedOfLast30 === 0) continue;
+
         let entry = {
             nickname: results[user].nickname,
-            avgScore: Math.round(scoreSum / gamesPlayedOfLast30 * 100) / 100,
-            avgPercent: Math.round(percentSum / gamesPlayedOfLast30 * 10) / 10,
-            gamesPlayed: gamesPlayedLifetime
+            avgScore: Math.round(scoreSum / denominator * 100) / 100,
+            avgPercent: Math.round(percentSum / denominator * 10) / 10,
+            gamesPlayed: Object.keys(results[user].scores).length
         };
         entries.push(entry);
     }
-    entries.sort(compareScoreThenPercentThenGamesPlayed);
+    entries.sort((a, b) => (a.avgScore - b.avgScore || a.avgPercent - b.avgPercent || b.gamesPlayed - a.gamesPlayed));
     
     // create leaderboard table
     let table = [];
@@ -309,26 +320,4 @@ function getLeaderboard(table,title) {
     reply += "```";
     console.log(reply);
     return reply;
-}
-
-// compare function for wordle and connections
-// if you've played less than 10 games, 100 is added to your avg score, since you're "unproven"
-// sort by avg score (asc), then games played (desc)
-function compareScoreThenGamesPlayed(a, b) {
-    let avgScoreA = a.avgScore;
-    let avgScoreB = b.avgScore;
-    if (a.gamesPlayed < 10) avgScoreA += 100;
-    if (b.gamesPlayed < 10) avgScoreB += 100;
-    return (avgScoreA - avgScoreB || a.gamesPlayed - b.gamesPlayed);
-}
-
-// compare function for strands
-// if you've played less than 10 games, 100 is added to your avg score, since you're "unproven"
-// sort by avg score (asc), then avg percent (asc), then games played (desc)
-function compareScoreThenPercentThenGamesPlayed(a, b) {
-    let avgScoreA = a.avgScore;
-    let avgScoreB = b.avgScore;
-    if (a.gamesPlayed < 10) avgScoreA += 100;
-    if (b.gamesPlayed < 10) avgScoreB += 100;
-    return (avgScoreA - avgScoreB || a.avgPercent - b.avgPercent || b.gamesPlayed - a.gamesPlayed);
 }
