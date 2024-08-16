@@ -7,6 +7,7 @@ const sad = "😔";
 const wordleLosingScore = 7;
 const connectionsLosingScore = 4;
 const strandsLosingScore = 9;
+const strandsLosingPercent = 99.9;
 
 // create client
 const client = new Client({
@@ -260,7 +261,7 @@ function strandsLeaderboard(interaction) {
                 percentSum += results[user].percents[game];
             } else {
                 scoreSum += strandsLosingScore;
-                percentSum += 100;
+                percentSum += strandsLosingPercent;
             }
         }
         // don't penalize for not playing the latest game
