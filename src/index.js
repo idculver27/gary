@@ -6,7 +6,7 @@ const happy = "🎉";
 const sad = "😔";
 const wordleLosingScore = 7;
 const connectionsLosingScore = 4;
-const strandsLosingScore = 9;
+const strandsLosingScore = 7;
 const strandsLosingPercent = 99.9;
 
 // create client
