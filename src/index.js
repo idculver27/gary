@@ -32,7 +32,7 @@ client.on("messageCreate", msg => {
     //console.log(msg);
     if (msg.author.bot) return;
     if (msg.content.startsWith("Wordle ")) saveWordleResults(msg);
-    else if (msg.content.startsWith("Connections \nPuzzle #")) saveConnectionsResults(msg);
+    else if (msg.content.startsWith("Connections\nPuzzle #")) saveConnectionsResults(msg);
     else if (msg.content.startsWith("Strands #")) saveStrandsResults(msg);
 });
 
