@@ -4,6 +4,7 @@ const { token } = require("../secret.json");
 
 const happy = "🎉";
 const sad = "😔";
+const fish = "🎣"; // connections red herring reaction
 const wordleLosingScore = 7;
 const connectionsLosingScore = 4;
 const strandsLosingScore = 7;
@@ -91,6 +92,7 @@ function saveConnectionsResults(msg) {
 
 		let score = 0;
 		let lines = regexGroups.score.split("\n");
+		let redHerring = false;
 		for (let i = 1; i < lines.length; i++) {
 			// if a line contains more than one color of square, it is a mistake
 			let a = lines[i].includes("🟨");
@@ -98,6 +100,7 @@ function saveConnectionsResults(msg) {
 			let c = lines[i].includes("🟦");
 			let d = lines[i].includes("🟪");
 			if ((a ? 1 : 0) + (b ? 1 : 0) + (c ? 1 : 0) + (d ? 1 : 0) > 1) score++;
+			if (i === 1 && a && b && c && d) redHerring = true;
 		}
 
 		if (!(userId in results)) results[userId] = {};
@@ -107,6 +110,7 @@ function saveConnectionsResults(msg) {
 
 		if (score < connectionsLosingScore) msg.react(happy);
 		else if (score === connectionsLosingScore) msg.react(sad);
+		if (redHerring) msg.react(fish);
 
 		console.log(`Connections result: ${nickname} ${puzzleNum} ${score}`);
 		fs.writeFileSync(path, JSON.stringify(results, null, "\t"));
