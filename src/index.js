@@ -9,7 +9,7 @@ const connectionsLosingScore = 4;
 const strandsLosingScore = 7;
 const strandsLosingPercent = 99.9;
 
-const wordleRegex = /Wordle (?<puzzleNum>[\d,]+) (?<score>[1-6X])\/6\*?\n(\n[⬛🟨🟩]{5,10}){1,6}/;
+const wordleRegex = /Wordle (?<puzzleNum>[\d,]+) (?<score>[1-6X])\/6\*?\n(\n[⬛🟨🟩⬜]{5,10}){1,6}/;
 const connectionsRegex = /Connections ?\nPuzzle #(?<puzzleNum>[\d,]+)(?<score>(\n[🟨🟩🟦🟪]{4,8}){4,7})/;
 const strandsRegex = /Strands #(?<puzzleNum>[\d,]+)\n[“].+[”](?<score>(\n[💡🔵🟡]{4,8}){1,9})/;
 
