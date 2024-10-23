@@ -2,9 +2,10 @@ const fs = require("fs");
 const { Client, Events, GatewayIntentBits } = require("discord.js");
 const { token } = require("../secret.json");
 
-const happy = "🎉";
-const sad = "😔";
-const fish = "🎣"; // connections red herring reaction
+const reactHappy = "🎉";
+const reactSad = "😔";
+const reactPerfect = "👑";
+const reactFish = "🎣"; // connections red herring reaction
 const wordleLosingScore = 7;
 const connectionsLosingScore = 4;
 const strandsLosingScore = 7;
@@ -69,8 +70,9 @@ function saveWordleResults(msg) {
 		if (!("scores" in results[userId])) results[userId].scores = {};
 		results[userId].scores[puzzleNum] = score;
 
-		if (score < wordleLosingScore) msg.react(happy);
-		else if (score === wordleLosingScore) msg.react(sad);
+		if (score === 1) msg.react(reactPerfect);
+		else if (score < wordleLosingScore) msg.react(reactHappy);
+		else if (score === wordleLosingScore) msg.react(reactSad);
 
 		console.log(`Wordle result: ${nickname} ${puzzleNum} ${score}`);
 		fs.writeFileSync(path, JSON.stringify(results, null, "\t"));
@@ -108,9 +110,10 @@ function saveConnectionsResults(msg) {
 		if (!("scores" in results[userId])) results[userId].scores = {};
 		results[userId].scores[puzzleNum] = score;
 
-		if (score < connectionsLosingScore) msg.react(happy);
-		else if (score === connectionsLosingScore) msg.react(sad);
-		if (redHerring) msg.react(fish);
+		if (score === 0) msg.react(reactPerfect);
+		else if (score < connectionsLosingScore) msg.react(reactHappy);
+		else if (score === connectionsLosingScore) msg.react(reactSad);
+		if (redHerring) msg.react(reactFish);
 
 		console.log(`Connections result: ${nickname} ${puzzleNum} ${score}`);
 		fs.writeFileSync(path, JSON.stringify(results, null, "\t"));
@@ -144,7 +147,9 @@ function saveStrandsResults(msg) {
 		if (!("percents" in results[userId])) results[userId].percents = {};
 		results[userId].percents[puzzleNum] = percent;
 
-		msg.react(happy); // strands has no fail state
+		if (score === 0 && percent === 0) msg.react(reactPerfect);
+		else msg.react(reactHappy);
+		// strands has no fail state
 
 		console.log(`Strands result: ${nickname} ${puzzleNum} ${score} ${percent}`);
 		fs.writeFileSync(path, JSON.stringify(results, null, "\t"));
