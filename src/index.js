@@ -5,6 +5,8 @@ const { token } = require("../secret.json");
 const reactHappy = "🎉";
 const reactSad = "😔";
 const reactPerfect = "👑";
+const react2 = "🥈";
+const react3 = "🥉";
 const reactFish = "🎣"; // connections red herring reaction
 const wordleLosingScore = 7;
 const connectionsLosingScore = 4;
@@ -71,6 +73,8 @@ function saveWordleResults(msg) {
 		results[userId].scores[puzzleNum] = score;
 
 		if (score === 1) msg.react(reactPerfect);
+		else if (score === 2) msg.react(react2);
+		else if (score === 3) msg.react(react3);
 		else if (score < wordleLosingScore) msg.react(reactHappy);
 		else if (score === wordleLosingScore) msg.react(reactSad);
 
