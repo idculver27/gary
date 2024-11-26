@@ -203,7 +203,7 @@ function wordleLeaderboard(interaction) {
 		let row = [];
 		row.push("#" + (i + 1).toString());
 		row.push(entries[i].nickname);
-		row.push(entries[i].avgScore.toFixed(2));
+		row.push(entries[i].avgScore === wordleLosingScore ? "-" : entries[i].avgScore.toFixed(2));
 		row.push(entries[i].gamesPlayed.toString());
 		table.push(row);
 	}
@@ -253,7 +253,7 @@ function connectionsLeaderboard(interaction) {
 		let row = [];
 		row.push("#" + (i + 1).toString());
 		row.push(entries[i].nickname);
-		row.push(entries[i].avgScore.toFixed(2));
+		row.push(entries[i].avgScore === connectionsLosingScore ? "-" : entries[i].avgScore.toFixed(2));
 		row.push(entries[i].gamesPlayed.toString());
 		table.push(row);
 	}
@@ -311,8 +311,8 @@ function strandsLeaderboard(interaction) {
 		let row = [];
 		row.push("#" + (i + 1).toString());
 		row.push(entries[i].nickname);
-		row.push(entries[i].avgScore.toFixed(2));
-		row.push(entries[i].avgPercent.toFixed(1) + "%");
+		row.push(entries[i].avgScore === strandsLosingScore ? "-" : entries[i].avgScore.toFixed(2));
+		row.push(entries[i].avgPercent === strandsLosingPercent ? "-" : (entries[i].avgPercent.toFixed(1) + "%"));
 		row.push(entries[i].gamesPlayed.toString());
 		table.push(row);
 	}
@@ -336,8 +336,12 @@ function getLeaderboard(table, title) {
 	let reply = title + "\n```\n";
 	for (let i = 0; i < table.length; i++) {
 		for (let j = 0; j < table[i].length; j++) {
-			if (isNaN(table[i][j].replace("%", ""))) reply += table[i][j].padEnd(widths[j] + 2);
-			else reply += table[i][j].padStart(widths[j]) + "  ";
+			if (isNaN(table[i][j].replace("%", "").replace("-", ""))) {
+				reply += table[i][j].padEnd(widths[j] + 2);
+			}
+			else {
+				reply += table[i][j].padStart(widths[j]) + "  ";
+			}
 		}
 		reply += "\n";
 	}
