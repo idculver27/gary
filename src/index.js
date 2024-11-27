@@ -10,7 +10,7 @@ const react3 = "🥉";
 const reactFish = "🎣"; // connections red herring reaction
 const wordleLosingScore = 7;
 const connectionsLosingScore = 4;
-const strandsLosingScore = 7;
+const strandsLosingScore = 9;
 const strandsLosingPercent = 99.9;
 
 const wordleRegex = /Wordle (?<puzzleNum>[\d,]+) (?<score>[1-6X])\/6\*?\n(\n[⬛🟨🟩⬜]{5,10}){1,6}/;
@@ -176,40 +176,59 @@ function wordleLeaderboard(interaction) {
 	// tabulate results
 	let entries = [];
 	for (let user in results) {
+		// calculate average score
 		let scoreSum = 0;
-		for (let game = latest - 29; game < latest; game++) {
-			if (game in results[user].scores) scoreSum += results[user].scores[game];
-			else scoreSum += wordleLosingScore;
+		let denominator = 0; // total games played of the last 30
+		for (let game = latest - 30; game < latest; game++) {
+			if (game in results[user].scores) {
+				scoreSum += results[user].scores[game];
+				denominator++;
+			}
 		}
-		// don't penalize for not playing the latest game
-		let denominator = 29;
-		if (latest in results[user].scores) {
-			scoreSum += results[user].scores[latest];
-			denominator++;
+		if (denominator === 0) { // no games in last 30
+			scoreSum = wordleLosingScore;
+			denominator = 1;
 		}
 
+		// calculate streak
+		let streak = 0;
+		for (let game = latest - 1; game > 0; game--) {
+			if (game in results[user].scores && results[user].scores[game] < wordleLosingScore) {
+				streak++;
+			} else {
+				break;
+			}
+		}
+		// do today separately so we're not punishing users who haven't played today yet
+		if (latest in results[user].scores) {
+			streak++;
+		}
+
+		// build leaderboard entry
 		let entry = {
 			nickname: results[user].nickname,
 			avgScore: Math.round(scoreSum / denominator * 100) / 100,
+			streak: streak,
 			gamesPlayed: Object.keys(results[user].scores).length
 		};
 		entries.push(entry);
 	}
-	entries.sort((a, b) => (a.avgScore - b.avgScore || b.gamesPlayed - a.gamesPlayed));
+	entries.sort((a, b) => (a.avgScore - b.avgScore || b.streak - a.streak || b.gamesPlayed - a.gamesPlayed));
 
 	// create leaderboard table
-	let table = [];
+	let table = [["", "", "Guesses", "Streak", "Games"]];
 	for (let i = 0; i < entries.length; i++) {
 		let row = [];
 		row.push("#" + (i + 1).toString());
 		row.push(entries[i].nickname);
 		row.push(entries[i].avgScore === wordleLosingScore ? "-" : entries[i].avgScore.toFixed(2));
+		row.push(entries[i].streak === 0 ? "-" : entries[i].streak.toString());
 		row.push(entries[i].gamesPlayed.toString());
 		table.push(row);
 	}
 
 	// print leaderboard
-	interaction.reply(getLeaderboard(table, "Wordle Leaderboard ⬛🟨🟩\n- Avg guesses (last 30 days)\n- Games played"));
+	interaction.reply(getLeaderboard(table, "Wordle Leaderboard ⬛🟨🟩\n- Average guesses (last 30 days)"));
 }
 
 function connectionsLeaderboard(interaction) {
@@ -226,40 +245,59 @@ function connectionsLeaderboard(interaction) {
 	// tabulate results
 	let entries = [];
 	for (let user in results) {
+		// calculate average score
 		let scoreSum = 0;
-		for (let game = latest - 29; game < latest; game++) {
-			if (game in results[user].scores) scoreSum += results[user].scores[game];
-			else scoreSum += connectionsLosingScore;
+		let denominator = 0; // total games played of the last 30
+		for (let game = latest - 30; game < latest; game++) {
+			if (game in results[user].scores) {
+				scoreSum += results[user].scores[game];
+				denominator++;
+			}
 		}
-		// don't penalize for not playing the latest game
-		let denominator = 29;
-		if (latest in results[user].scores) {
-			scoreSum += results[user].scores[latest];
-			denominator++;
+		if (denominator === 0) { // no games in last 30
+			scoreSum = connectionsLosingScore;
+			denominator = 1;
 		}
 
+		// calculate streak
+		let streak = 0;
+		for (let game = latest - 1; game > 0; game--) {
+			if (game in results[user].scores && results[user].scores[game] < connectionsLosingScore) {
+				streak++;
+			} else {
+				break;
+			}
+		}
+		// do today separately so we're not punishing users who haven't played today yet
+		if (latest in results[user].scores) {
+			streak++;
+		}
+
+		// build leaderboard entry
 		let entry = {
 			nickname: results[user].nickname,
 			avgScore: Math.round(scoreSum / denominator * 100) / 100,
+			streak: streak,
 			gamesPlayed: Object.keys(results[user].scores).length
 		};
 		entries.push(entry);
 	}
-	entries.sort((a, b) => (a.avgScore - b.avgScore || b.gamesPlayed - a.gamesPlayed));
+	entries.sort((a, b) => (a.avgScore - b.avgScore || b.streak - a.streak || b.gamesPlayed - a.gamesPlayed));
 
 	// create leaderboard table
-	let table = [];
+	let table = [["", "", "Mistakes", "Streak", "Games"]];
 	for (let i = 0; i < entries.length; i++) {
 		let row = [];
 		row.push("#" + (i + 1).toString());
 		row.push(entries[i].nickname);
 		row.push(entries[i].avgScore === connectionsLosingScore ? "-" : entries[i].avgScore.toFixed(2));
+		row.push(entries[i].streak === 0 ? "-" : entries[i].streak.toString());
 		row.push(entries[i].gamesPlayed.toString());
 		table.push(row);
 	}
 
 	// print leaderboard
-	interaction.reply(getLeaderboard(table, "Connections Leaderboard 🟨🟩🟦🟪\n- Avg mistakes (last 30 days)\n- Games played"));
+	interaction.reply(getLeaderboard(table, "Connections Leaderboard 🟨🟩🟦🟪\n- Average mistakes (last 30 days)"));
 }
 
 function strandsLeaderboard(interaction) {
@@ -276,49 +314,63 @@ function strandsLeaderboard(interaction) {
 	// tabulate results
 	let entries = [];
 	for (let user in results) {
+		// calculate average score
 		let scoreSum = 0;
 		let percentSum = 0;
-		for (let game = latest - 29; game < latest; game++) {
+		let denominator = 0; // total games played of the last 30
+		for (let game = latest - 30; game < latest; game++) {
 			if (game in results[user].scores) {
 				scoreSum += results[user].scores[game];
 				percentSum += results[user].percents[game];
-			} else {
-				scoreSum += strandsLosingScore;
-				percentSum += strandsLosingPercent;
+				denominator++;
 			}
 		}
-		// don't penalize for not playing the latest game
-		let denominator = 29;
-		if (latest in results[user].scores) {
-			scoreSum += results[user].scores[latest];
-			percentSum += results[user].percents[latest];
-			denominator++;
+		if (denominator === 0) { // no games in last 30
+			scoreSum = strandsLosingScore;
+			denominator = 1;
 		}
 
+		// calculate streak
+		let streak = 0;
+		for (let game = latest - 1; game > 0; game--) {
+			if (game in results[user].scores) {
+				streak++;
+			} else {
+				break;
+			}
+		}
+		// do today separately so we're not punishing users who haven't played today yet
+		if (latest in results[user].scores) {
+			streak++;
+		}
+
+		// build leaderboard entry
 		let entry = {
 			nickname: results[user].nickname,
 			avgScore: Math.round(scoreSum / denominator * 100) / 100,
 			avgPercent: Math.round(percentSum / denominator * 10) / 10,
+			streak: streak,
 			gamesPlayed: Object.keys(results[user].scores).length
 		};
 		entries.push(entry);
 	}
-	entries.sort((a, b) => (a.avgScore - b.avgScore || a.avgPercent - b.avgPercent || b.gamesPlayed - a.gamesPlayed));
+	entries.sort((a, b) => (a.avgScore - b.avgScore || a.avgPercent - b.avgPercent || b.streak - a.streak || b.gamesPlayed - a.gamesPlayed));
 
 	// create leaderboard table
-	let table = [];
+	let table = [["", "", "Hints", "%", "Streak", "Games"]];
 	for (let i = 0; i < entries.length; i++) {
 		let row = [];
 		row.push("#" + (i + 1).toString());
 		row.push(entries[i].nickname);
 		row.push(entries[i].avgScore === strandsLosingScore ? "-" : entries[i].avgScore.toFixed(2));
 		row.push(entries[i].avgPercent === strandsLosingPercent ? "-" : (entries[i].avgPercent.toFixed(1) + "%"));
+		row.push(entries[i].streak === 0 ? "-" : entries[i].streak.toString());
 		row.push(entries[i].gamesPlayed.toString());
 		table.push(row);
 	}
 
 	// print leaderboard
-	interaction.reply(getLeaderboard(table, "Strands Leaderboard 💡🔵🟡\n- Avg hints (last 30 days)\n- Avg % until spangram (last 30 days)\n- Games played"));
+	interaction.reply(getLeaderboard(table, "Strands Leaderboard 💡🔵🟡\n- Average hints (last 30 days)\n- Average % of words found until spangram found (last 30 days)"));
 }
 
 function getLeaderboard(table, title) {
@@ -337,10 +389,9 @@ function getLeaderboard(table, title) {
 	for (let i = 0; i < table.length; i++) {
 		for (let j = 0; j < table[i].length; j++) {
 			if (isNaN(table[i][j].replace("%", "").replace("-", ""))) {
-				reply += table[i][j].padEnd(widths[j] + 2);
-			}
-			else {
-				reply += table[i][j].padStart(widths[j]) + "  ";
+				reply += table[i][j].padEnd(widths[j] + 1); // left justify text
+			} else {
+				reply += table[i][j].padStart(widths[j]) + " "; // right justify numbers
 			}
 		}
 		reply += "\n";
